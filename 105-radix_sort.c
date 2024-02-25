@@ -1,69 +1,76 @@
 #include "sort.h"
 
 /**
- * counting_sort - sorts an array using the counting sort algorithm.
- * @array: array to be sorted.
+ * find_max - finds the maximum value in an array of ints
+ * @array: array of ints
  * @size: size of the array.
- * @exp: exponent indicating the digit to sort on.
+ *
+ * Return: maximum integer
  */
-void counting_sort(int *array, size_t size, int exp)
+int find_max(int *array, int size)
 {
-	int *output, *count;
-	size_t i, max = 10;
+	int max_value = array[0];
+	int i;
 
-	output = malloc(sizeof(int) * size);
-	count = malloc(sizeof(int) * max);
-	if (output == NULL || count == NULL)
+	for (i = 1; i < size; i++)
 	{
-		free(output);
-		free(count);
-		return;
+		if (array[i] > max_value)
+			max_value = array[i];
 	}
+	return (max_value);
+}
 
-	for (i = 0; i < max; i++)
-		count[i] = 0;
+/**
+ * counting_sort - sort the significant digits using counting sort algorithm.
+ * @array: array of ints
+ * @size: size of the array
+ * @sig: digit position
+ * @buff: buffer to store the sorted array
+ */
+void counting_sort(int *array, size_t size, int sig, int *buff)
+{
+	int count[10] = {0};
+	size_t i;
 
 	for (i = 0; i < size; i++)
-		count[(array[i] / exp) % 10]++;
+		count[(array[i] / sig) % 10] += 1;
 
-	for (i = 1; i < max; i++)
+	for (i = 0; i < 10; i++)
 		count[i] += count[i - 1];
 
-	for (i = size - 1; i < size; i--)
+	for (i = size - 1; (int)i >= 0; i--)
 	{
-		output[count[(array[i] / exp) % 10] - 1] = array[i];
-		count[(array[i] / exp) % 10]--;
+		buff[count[(array[i] / sig) % 10] - 1] = array[i];
+		count[(array[i] / sig) % 10] -= 1;
 	}
 
 	for (i = 0; i < size; i++)
-		array[i] = output[i];
-
-	print_array(array, size);
-
-	free(output);
-	free(count);
+		array[i] = buff[i];
 }
 
 /**
  * radix_sort - sorts array inascending order with radix sort algorithm
- * @array: array to be sorted
+ * @array: array of ints
  * @size: size of the array
  */
 void radix_sort(int *array, size_t size)
 {
-	size_t i;
-	int max, exp;
+	int *buffer, max_value, digit;
 
 	if (array == NULL || size < 2)
 		return;
 
-	max = array[0];
-	for (i = 1; i < size; i++)
+	buffer = malloc(sizeof(int) * size);
+	if (buffer == NULL)
+		return;
+
+	max_value = find_max(array, size);
+
+	for (digit = 1; max_value / digit > 0; digit *= 10)
 	{
-		if (array[i] > max)
-			max = array[i];
+		counting_sort(array, size, digit, buffer);
+		print_array(array, size);
 	}
 
-	for (exp = 1; max / exp > 0; exp *= 10)
-		counting_sort(array, size, exp);
+	free(buffer);
 }
